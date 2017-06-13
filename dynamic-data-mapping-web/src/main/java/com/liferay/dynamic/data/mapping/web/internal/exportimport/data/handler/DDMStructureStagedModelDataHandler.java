@@ -43,6 +43,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -468,15 +469,34 @@ public class DDMStructureStagedModelDataHandler
 
 		DDMStructure existingStructure = null;
 
+		Group group = _groupLocalService.fetchGroup(groupId);
+
 		if (!preloaded) {
-			existingStructure = fetchStagedModelByUuidAndGroupId(uuid, groupId);
+			while (group != null) {
+				existingStructure = fetchStagedModelByUuidAndGroupId(
+					uuid, group.getGroupId());
+
+				if (existingStructure != null) {
+					return existingStructure;
+				}
+
+				group = group.getParentGroup();
+			}
 		}
 		else {
-			existingStructure = _ddmStructureLocalService.fetchStructure(
-				groupId, classNameId, structureKey);
+			while (group != null) {
+				existingStructure = _ddmStructureLocalService.fetchStructure(
+					group.getGroupId(), classNameId, structureKey);
+
+				if (existingStructure != null) {
+					return existingStructure;
+				}
+
+				group = group.getParentGroup();
+			}
 		}
 
-		return existingStructure;
+		return null;
 	}
 
 	protected DDMForm getImportDDMForm(
@@ -628,6 +648,11 @@ public class DDMStructureStagedModelDataHandler
 	}
 
 	@Reference(unbind = "-")
+	protected void setGroupLocalService(GroupLocalService groupLocalService) {
+		_groupLocalService = groupLocalService;
+	}
+
+	@Reference(unbind = "-")
 	protected void setUserLocalService(UserLocalService userLocalService) {
 		_userLocalService = userLocalService;
 	}
@@ -650,6 +675,7 @@ public class DDMStructureStagedModelDataHandler
 	private DDMFormLayoutJSONDeserializer _ddmFormLayoutJSONDeserializer;
 	private DDMStructureLayoutLocalService _ddmStructureLayoutLocalService;
 	private DDMStructureLocalService _ddmStructureLocalService;
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private Portal _portal;

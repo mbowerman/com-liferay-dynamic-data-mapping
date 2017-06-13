@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Image;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
@@ -463,15 +464,34 @@ public class DDMTemplateStagedModelDataHandler
 
 		DDMTemplate existingTemplate = null;
 
+		Group group = _groupLocalService.fetchGroup(groupId);
+
 		if (!preloaded) {
-			existingTemplate = fetchStagedModelByUuidAndGroupId(uuid, groupId);
+			while (group != null) {
+				existingTemplate = fetchStagedModelByUuidAndGroupId(
+					uuid, group.getGroupId());
+
+				if (existingTemplate != null) {
+					return existingTemplate;
+				}
+
+				group = group.getParentGroup();
+			}
 		}
 		else {
-			existingTemplate = _ddmTemplateLocalService.fetchTemplate(
-				groupId, classNameId, templateKey);
+			while (group != null) {
+				existingTemplate = _ddmTemplateLocalService.fetchTemplate(
+					group.getGroupId(), classNameId, templateKey);
+
+				if (existingTemplate != null) {
+					return existingTemplate;
+				}
+
+				group = group.getParentGroup();
+			}
 		}
 
-		return existingTemplate;
+		return null;
 	}
 
 	@Reference(unbind = "-")
@@ -498,6 +518,11 @@ public class DDMTemplateStagedModelDataHandler
 	}
 
 	@Reference(unbind = "-")
+	protected void setGroupLocalService(GroupLocalService groupLocalService) {
+		_groupLocalService = groupLocalService;
+	}
+
+	@Reference(unbind = "-")
 	protected void setImageLocalService(ImageLocalService imageLocalService) {
 		_imageLocalService = imageLocalService;
 	}
@@ -514,6 +539,7 @@ public class DDMTemplateStagedModelDataHandler
 	private DDMTemplateExportImportContentProcessor
 		_ddmTemplateExportImportContentProcessor;
 	private DDMTemplateLocalService _ddmTemplateLocalService;
+	private GroupLocalService _groupLocalService;
 	private ImageLocalService _imageLocalService;
 
 	@Reference
