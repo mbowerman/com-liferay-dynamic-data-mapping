@@ -20,6 +20,10 @@ module.exports = function(config) {
 	config.files.push(
 		{
 			included: true,
+			pattern: 'node_modules/lodash/dist/*.js'
+		},
+		{
+			included: true,
 			pattern: 'node_modules/soyutils-nogoog/index.js'
 		},
 		{
@@ -40,50 +44,4 @@ module.exports = function(config) {
 		},
 		'src/test/testJS/**/*.js'
 	);
-
-	config.preprocessors[resourcesPath + '/**/*.soy.js'] = ['replacer'];
-	config.preprocessors['../dynamic-data-mapping-form-renderer/' + resourcesPath + '/**/*.soy.js'] = ['replacer'];
-
-	config.replacerPreprocessor = {
-		replacer: function(file, content) {
-			var filePath = file.path.split(path.sep);
-
-			var fileName = filePath.pop();
-
-			if (fileName === 'options.soy.js') {
-				content = [
-					'AUI.add(\'liferay-ddm-form-field-options-template\', function(A) {',
-					content.replace(
-						'(typeof ddm == \'undefined\') { var ddm = {}; }',
-						'(typeof ddm == \'undefined\') { window.ddm = {}; }'
-					),
-					'}, \'\', {requires: []});'
-				].join('');
-			}
-
-			if (fileName === 'key_value.soy.js') {
-				content = [
-					'AUI.add(\'liferay-ddm-form-field-key-value-template\', function(A) {',
-					content.replace(
-						'(typeof ddm == \'undefined\') { var ddm = {}; }',
-						'(typeof ddm == \'undefined\') { window.ddm = {}; }'
-					),
-					'}, \'\', {requires: []});'
-				].join('');
-			}
-
-			if (fileName === 'form.soy.js') {
-				content = [
-					'AUI.add(\'liferay-ddm-form-soy\', function(A) {',
-					content.replace(
-						'(typeof ddm == \'undefined\') { var ddm = {}; }',
-						'(typeof ddm == \'undefined\') { window.ddm = {}; }'
-					),
-					'}, \'\', {requires: []});'
-				].join('');
-			}
-
-			return content;
-		}
-	};
 };
