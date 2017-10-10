@@ -26,6 +26,10 @@ AUI.add(
 			register: function(fieldTypes) {
 				var instance = this;
 
+				if (A.Lang.isString(fieldTypes)) {
+					fieldTypes = JSON.parse(fieldTypes);
+				}
+
 				_fieldTypes = AArray(fieldTypes).map(instance._getFieldType);
 			},
 
@@ -37,8 +41,10 @@ AUI.add(
 						defaultConfig: {
 							type: config.name
 						},
+						description: config.description,
 						fieldClass: Liferay.DDM.Renderer.Field,
 						icon: config.icon,
+						group: config.group,
 						label: config.label
 					}
 				);

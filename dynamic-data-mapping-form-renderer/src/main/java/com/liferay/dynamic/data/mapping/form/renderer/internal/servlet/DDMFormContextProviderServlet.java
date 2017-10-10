@@ -77,6 +77,9 @@ public class DDMFormContextProviderServlet extends HttpServlet {
 
 			ddmFormRenderingContext.setDDMFormValues(ddmFormValues);
 
+			ddmFormRenderingContext.setGroupId(
+				ddmFormTemplateContextProcessor.getGroupId());
+
 			_prepareThreadLocal(Locale.US);
 
 			DDMForm ddmForm = ddmFormTemplateContextProcessor.getDDMForm();
@@ -94,6 +97,7 @@ public class DDMFormContextProviderServlet extends HttpServlet {
 			ddmFormPagesTemplateContextFactory.
 				setDDMFormFieldTypeServicesTracker(
 					_ddmFormFieldTypeServicesTracker);
+			ddmFormPagesTemplateContextFactory.setJSONFactory(_jsonFactory);
 
 			return ddmFormPagesTemplateContextFactory.create();
 		}

@@ -1066,8 +1066,8 @@ public class DDMStructureLocalServiceImpl
 	}
 
 	/**
-	 * Returns an ordered range of all the structures matching the group,
-	 * class name ID, name, and description.
+	 * Returns an ordered range of all the structures matching the group, class
+	 * name ID, name, and description.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end -
@@ -1629,6 +1629,11 @@ public class DDMStructureLocalServiceImpl
 			user, structure, version, serviceContext);
 
 		// Structure layout
+
+		// Explicitly pop UUID from service context to ensure no lingering
+		// values remain there from other components (e.g. Journal)
+
+		serviceContext.getUuid();
 
 		ddmStructureLayoutLocalService.addStructureLayout(
 			structureVersion.getUserId(), structureVersion.getGroupId(),

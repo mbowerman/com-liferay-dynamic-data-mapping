@@ -37,8 +37,8 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	immediate = true, property = "ddm.form.field.type.name=validation",
 	service = {
-		ValidationDDMFormFieldTemplateContextContributor.class,
-		DDMFormFieldTemplateContextContributor.class
+		DDMFormFieldTemplateContextContributor.class,
+		ValidationDDMFormFieldTemplateContextContributor.class
 	}
 )
 public class ValidationDDMFormFieldTemplateContextContributor
@@ -76,7 +76,9 @@ public class ValidationDDMFormFieldTemplateContextContributor
 					"expression", valueJSONObject.getString("expression"));
 			}
 			catch (JSONException jsone) {
-				_log.error(jsone, jsone);
+				if (_log.isWarnEnabled()) {
+					_log.warn(jsone, jsone);
+				}
 			}
 		}
 		else {

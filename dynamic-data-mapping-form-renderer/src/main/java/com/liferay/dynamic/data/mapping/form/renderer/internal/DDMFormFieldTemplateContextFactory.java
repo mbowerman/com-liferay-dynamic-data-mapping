@@ -27,11 +27,12 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageConstants;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -53,13 +54,16 @@ public class DDMFormFieldTemplateContextFactory {
 		Map<String, DDMFormField> ddmFormFieldsMap,
 		DDMFormEvaluationResult ddmFormEvaluationResult,
 		List<DDMFormFieldValue> ddmFormFieldValues,
-		DDMFormRenderingContext ddmFormRenderingContext) {
+		DDMFormRenderingContext ddmFormRenderingContext,
+		JSONFactory jsonFactory, boolean pageEnabled) {
 
 		_ddmFormFieldsMap = ddmFormFieldsMap;
 
 		_ddmFormEvaluationResult = ddmFormEvaluationResult;
 		_ddmFormFieldValues = ddmFormFieldValues;
 		_ddmFormRenderingContext = ddmFormRenderingContext;
+		_jsonFactory = jsonFactory;
+		_pageEnabled = pageEnabled;
 
 		_locale = ddmFormRenderingContext.getLocale();
 	}
@@ -160,8 +164,8 @@ public class DDMFormFieldTemplateContextFactory {
 		setDDMFormFieldTemplateContextValid(
 			ddmFormFieldEvaluationResult, ddmFormFieldTemplateContext);
 		setDDMFormFieldTemplateContextValue(
-			ddmFormFieldEvaluationResult, ddmFormFieldTemplateContext,
-			ddmFormFieldValue.getValue());
+			ddmFormField, ddmFormFieldEvaluationResult,
+			ddmFormFieldTemplateContext, ddmFormFieldValue.getValue());
 		setDDMFormFieldTemplateContextValueLocalizableValue(
 			ddmFormFieldTemplateContext, ddmFormFieldValue.getValue());
 		setDDMFormFieldTemplateContextValidation(
@@ -192,6 +196,10 @@ public class DDMFormFieldTemplateContextFactory {
 		for (DDMFormFieldValue ddmFormFieldValue : ddmFormFieldValues) {
 			DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult =
 				_getDDMFormFieldEvaluationResult(ddmFormFieldValue);
+
+			if (!_pageEnabled) {
+				ddmFormFieldEvaluationResult.setRequired(false);
+			}
 
 			Object ddmFormFieldTemplateContext =
 				createDDMFormFieldTemplateContext(
@@ -321,6 +329,9 @@ public class DDMFormFieldTemplateContextFactory {
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext =
 			createDDDMFormFieldRenderingContext(ddmFormFieldTemplateContext);
 
+		ddmFormFieldRenderingContext.setProperty(
+			"groupId", _ddmFormRenderingContext.getGroupId());
+
 		Map<String, Object> contributedParameters =
 			ddmFormFieldTemplateContextContributor.getParameters(
 				ddmFormField, ddmFormFieldRenderingContext);
@@ -442,7 +453,7 @@ public class DDMFormFieldTemplateContextFactory {
 		List<KeyValuePair> keyValuePairs =
 			ddmFormFieldEvaluationResult.getProperty("options");
 
-		if (ListUtil.isNotEmpty(keyValuePairs)) {
+		if (keyValuePairs != null) {
 			ddmFormFieldTemplateContext.put(
 				"options", createOptions(keyValuePairs));
 		}
@@ -522,6 +533,7 @@ public class DDMFormFieldTemplateContextFactory {
 	}
 
 	protected void setDDMFormFieldTemplateContextValue(
+		DDMFormField ddmFormField,
 		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult,
 		Map<String, Object> ddmFormFieldTemplateContext, Value value) {
 
@@ -529,8 +541,16 @@ public class DDMFormFieldTemplateContextFactory {
 			Object evaluationResultValue =
 				ddmFormFieldEvaluationResult.getValue();
 
-			ddmFormFieldTemplateContext.put(
-				"value", evaluationResultValue.toString());
+			if (evaluationResultValue instanceof JSONObject) {
+				JSONObject jsonObject = (JSONObject)evaluationResultValue;
+
+				ddmFormFieldTemplateContext.put(
+					"value",
+					_jsonFactory.looseDeserialize(jsonObject.toJSONString()));
+			}
+			else {
+				ddmFormFieldTemplateContext.put("value", evaluationResultValue);
+			}
 		}
 		else if (value != null) {
 			ddmFormFieldTemplateContext.put("value", value.getString(_locale));
@@ -589,6 +609,8 @@ public class DDMFormFieldTemplateContextFactory {
 	private DDMFormFieldTypeServicesTracker _ddmFormFieldTypeServicesTracker;
 	private final List<DDMFormFieldValue> _ddmFormFieldValues;
 	private final DDMFormRenderingContext _ddmFormRenderingContext;
+	private final JSONFactory _jsonFactory;
 	private final Locale _locale;
+	private final boolean _pageEnabled;
 
 }

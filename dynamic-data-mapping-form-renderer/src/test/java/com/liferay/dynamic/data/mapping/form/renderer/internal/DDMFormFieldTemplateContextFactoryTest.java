@@ -14,9 +14,6 @@
 
 package com.liferay.dynamic.data.mapping.form.renderer.internal;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationResult;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormFieldEvaluationResult;
 import com.liferay.dynamic.data.mapping.form.field.type.BaseDDMFormFieldRenderer;
@@ -30,6 +27,8 @@ import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
+import com.liferay.portal.json.JSONFactoryImpl;
+import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageConstants;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -50,6 +49,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.mockito.Matchers;
+import org.mockito.Mockito;
 
 /**
  * @author Marcellus Tavares
@@ -287,7 +287,8 @@ public class DDMFormFieldTemplateContextFactoryTest {
 		DDMFormFieldTemplateContextFactory ddmFormFieldTemplateContextFactory =
 			new DDMFormFieldTemplateContextFactory(
 				ddmForm.getDDMFormFieldsMap(true), ddmFormEvaluationResult,
-				ddmFormFieldValues, ddmFormRenderingContext);
+				ddmFormFieldValues, ddmFormRenderingContext, _jsonFactory,
+				true);
 
 		DDMFormFieldTypeServicesTracker ddmFormFieldTypeServicesTracker =
 			mockDDMFormFieldTypeServicesTracker(
@@ -360,17 +361,17 @@ public class DDMFormFieldTemplateContextFactoryTest {
 			DDMFormFieldTemplateContextContributor
 				ddmFormFieldTemplateContextContributor) {
 
-		DDMFormFieldTypeServicesTracker ddmFormFieldTypeServicesTracker = mock(
-			DDMFormFieldTypeServicesTracker.class);
+		DDMFormFieldTypeServicesTracker ddmFormFieldTypeServicesTracker =
+			Mockito.mock(DDMFormFieldTypeServicesTracker.class);
 
-		when(
+		Mockito.when(
 			ddmFormFieldTypeServicesTracker.getDDMFormFieldRenderer(
 				Matchers.anyString())
 		).thenReturn(
 			ddmFormFieldRenderer
 		);
 
-		when(
+		Mockito.when(
 			ddmFormFieldTypeServicesTracker.
 				getDDMFormFieldTemplateContextContributor(Matchers.anyString())
 		).thenReturn(
@@ -381,7 +382,7 @@ public class DDMFormFieldTemplateContextFactoryTest {
 	}
 
 	protected void setUpLanguageUtil() {
-		Language language = mock(Language.class);
+		Language language = Mockito.mock(Language.class);
 
 		whenLanguageGet(
 			language, LocaleUtil.US, LanguageConstants.KEY_DIR, "ltr");
@@ -394,7 +395,7 @@ public class DDMFormFieldTemplateContextFactoryTest {
 	protected void whenLanguageGet(
 		Language language, Locale locale, String key, String returnValue) {
 
-		when(
+		Mockito.when(
 			language.get(Matchers.eq(locale), Matchers.eq(key))
 		).thenReturn(
 			returnValue
@@ -407,5 +408,7 @@ public class DDMFormFieldTemplateContextFactoryTest {
 	private static final Locale _LOCALE = LocaleUtil.US;
 
 	private static final String _PORTLET_NAMESPACE = "_PORTLET_NAMESPACE_";
+
+	private final JSONFactory _jsonFactory = new JSONFactoryImpl();
 
 }
